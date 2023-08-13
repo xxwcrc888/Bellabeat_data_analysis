@@ -43,9 +43,42 @@ We used a public dataset from Kaggle ([FitBit Fitness Tracker Data](https://www.
 
 ### Loading Packages
 
-```{r}
+
+```r
 library(lubridate) # for converting data into datetime format
+```
+
+```
+## 
+## Attaching package: 'lubridate'
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     date, intersect, setdiff, union
+```
+
+```r
 library(tidyverse)
+```
+
+```
+## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+## ✔ dplyr   1.1.2     ✔ readr   2.1.4
+## ✔ forcats 1.0.0     ✔ stringr 1.5.0
+## ✔ ggplot2 3.4.2     ✔ tibble  3.2.1
+## ✔ purrr   1.0.1     ✔ tidyr   1.3.0
+```
+
+```
+## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()
+## ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+```
+
+```r
 library(dplyr)
 library(ggplot2) # for data viz
 library(tidyr)
@@ -53,7 +86,8 @@ library(readr) # for importing data
 ```
 
 ### Importing Datasets
-```{r}
+
+```r
 # daily
 dailyActivity <- read.csv("../Data/source_data/dailyActivity_merged.csv")
 dailyWeight <- read.csv("../Data/source_data/weightLogInfo_merged.csv")
@@ -72,7 +106,8 @@ minuteSleep <- read.csv("../Data/source_data/minuteSleep_merged.csv")
 
 ## Process
 We first used head() to skim our data.
-```{r}
+
+```r
 # head(dailyActivity)
 # head(dailyWeight)
 # head(dailySleep)
@@ -80,7 +115,8 @@ We first used head() to skim our data.
 
 We found the data type of *ActivityDate*, *Date*, and *SleepDay* had some error. They were in *chr* type, but we needed to convert them into *datetime* format.
 
-```{r}
+
+```r
 # Convert the 'ActivityDate' column from character to datetime format
 dailyActivity$ActivityDate <- as.Date(dailyActivity$ActivityDate, format = "%m/%d/%Y")
 
@@ -93,7 +129,8 @@ dailySleep$SleepDay <- as.Date(dailySleep$SleepDay, format = "%m/%d/%Y")
 # head(dailySleep)
 ```
 
-```{r}
+
+```r
 # We split the ActivityHour into Date and Time, and convert the time into 24-hour format.
 hourlyActivity <- hourlyActivity %>%
   mutate(Date = as.Date(ActivityHour, format = "%m/%d/%Y"),
@@ -108,13 +145,33 @@ hourlyIntensity <- hourlyIntensity %>%
          Time = format(as.POSIXct(ActivityHour, format = "%m/%d/%Y %I:%M:%S %p"), format = "%H:%M:%S"))
 ```
 
-```{r}
+
+```r
 print(paste("number of people in hourlyActivity:", n_distinct(hourlyActivity$Id)))
+```
+
+```
+## [1] "number of people in hourlyActivity: 33"
+```
+
+```r
 print(paste("number of people in hourlyCalories:", n_distinct(hourlyCalories$Id)))
+```
+
+```
+## [1] "number of people in hourlyCalories: 33"
+```
+
+```r
 print(paste("number of people in hourlyIntensity:", n_distinct(hourlyIntensity$Id)))
 ```
 
-```{r}
+```
+## [1] "number of people in hourlyIntensity: 33"
+```
+
+
+```r
 hourlyData <- hourlyActivity %>%
   full_join(hourlyCalories, by = c("Id", "ActivityHour", "Date", "Time"))
 
@@ -130,10 +187,29 @@ hourlyData <- hourlyData %>%
 
 ##### 1. Difference in people number
 
-```{r}
+
+```r
 print(paste("number of people in dailyWeight:", n_distinct(dailyWeight$Id)))
+```
+
+```
+## [1] "number of people in dailyWeight: 8"
+```
+
+```r
 print(paste("number of people in dailyActivity:", n_distinct(dailyActivity$Id)))
+```
+
+```
+## [1] "number of people in dailyActivity: 33"
+```
+
+```r
 print(paste("number of people in dailySleep:", n_distinct(dailySleep$Id)))
+```
+
+```
+## [1] "number of people in dailySleep: 24"
 ```
 
 The numbers of people in the three datasets are unequal. 
@@ -141,7 +217,8 @@ The numbers of people in the three datasets are unequal.
 
 ##### 2. Obesity distribution based on *BMI*
 
-```{r}
+
+```r
 BMI <- dailyWeight %>% 
   group_by(Id) %>% 
   summarise(mean_BMI = mean(BMI), mean_weight = mean(WeightKg)) %>% 
@@ -150,26 +227,51 @@ BMI <- dailyWeight %>%
 print(BMI) # Healthy Weight: 18.5 – 24.9, Overweight: 25.0 – 29.9, Obesity: >30.0
 ```
 
+```
+## # A tibble: 8 × 3
+##           Id mean_BMI mean_weight
+##        <dbl>    <dbl>       <dbl>
+## 1 2873212765     21.6        57  
+## 2 1503960366     22.6        52.6
+## 3 6962181067     24.0        61.6
+## 4 8877689391     25.5        85.1
+## 5 4558609924     27.2        69.6
+## 6 4319703577     27.4        72.4
+## 7 5577150313     28          90.7
+## 8 1927972279     47.5       134.
+```
+
 There are 8 people providing their weight data. We found that 3 people had healthy weight, 4 people were overweight, and 1 was obesity. 
 
 
 ##### 3. Step distribution
 
-```{r}
+
+```r
 ggplot(dailyActivity, aes(x = TotalSteps)) +
   geom_histogram(aes(y=..density..), binwidth=2000, colour="black", fill="white") +
   geom_density(alpha=.2, fill="#FF6666") + 
   geom_vline(aes(xintercept=mean(TotalSteps)), color="red", linetype="dashed", linewidth=1) + 
   labs(title = paste("Step distribution. The average step is ", mean(dailyActivity$TotalSteps)), x = "Total Steps")
-  
 ```
+
+```
+## Warning: The dot-dot notation (`..density..`) was deprecated in ggplot2 3.4.0.
+## ℹ Please use `after_stat(density)` instead.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.
+```
+
+![](data_analysis_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
 
 The average steps are close to 8000 steps, which is the daily step recommendation number from CDC.
 
 
 ##### 4. Sleep quality 
 
-```{r}
+
+```r
 sleep_quality <- dailySleep %>% 
   group_by(Id) %>% 
   summarise(mean_asleep = mean(TotalMinutesAsleep)/60, mean_inBed = mean(TotalTimeInBed)/60) %>% 
@@ -179,8 +281,9 @@ ggplot(sleep_quality, aes(x = mean_asleep)) +
   geom_histogram(binwidth=1, colour="black", fill="white") +
   geom_vline(aes(xintercept=mean(dailySleep$TotalMinutesAsleep)/60), color="red", linetype="dashed", linewidth=1) + 
   labs(title = paste("Sleep time distribution. The average sleep time is ", round(mean(dailySleep$TotalMinutesAsleep)/60), " hr"), x = "Sleep time")
-
 ```
+
+![](data_analysis_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
 
 The average sleep time is 7 hours. There are 3 people that have less than 3 hours average sleep time, which seems weird.
 
@@ -188,7 +291,8 @@ The average sleep time is 7 hours. There are 3 people that have less than 3 hour
 
 #### 1. What is the relation among *step*, *distance*, and *calories*? 
 
-```{r}
+
+```r
 correlation_steps_distance <- cor(dailyActivity$TotalSteps, dailyActivity$TotalDistance)
 ggplot(dailyActivity, aes(x = TotalSteps, y = TotalDistance)) +
   geom_point() +
@@ -196,7 +300,14 @@ ggplot(dailyActivity, aes(x = TotalSteps, y = TotalDistance)) +
   labs(title = paste("Correlation_steps_distance:", round(correlation_steps_distance, 2)), x = "Total Steps", y = "Total Distance")
 ```
 
-```{r}
+```
+## `geom_smooth()` using formula = 'y ~ x'
+```
+
+![](data_analysis_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
+
+
+```r
 correlation_steps_calories <- cor(dailyActivity$TotalSteps, dailyActivity$Calories)
 ggplot(dailyActivity, aes(x = TotalSteps, y = Calories)) +
   geom_point() +
@@ -204,12 +315,19 @@ ggplot(dailyActivity, aes(x = TotalSteps, y = Calories)) +
   labs(title = paste("Correlation_steps_calories:", round(correlation_steps_calories, 2)), x = "Total Steps", y = "Calories")
 ```
 
+```
+## `geom_smooth()` using formula = 'y ~ x'
+```
+
+![](data_analysis_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
+
 We found that *total steps* are strongly positive with *total distance*. There is positive relation between *total steps* and *calories*. 
 
 
 #### 2. What is the relation between *step* and *SedentaryMinutes*? 
 
-```{r}
+
+```r
 correlation_steps_sedentary_time <- cor(dailyActivity$TotalSteps, dailyActivity$SedentaryMinutes)
 ggplot(dailyActivity, aes(x = TotalSteps, y = SedentaryMinutes)) +
   geom_point() +
@@ -217,11 +335,18 @@ ggplot(dailyActivity, aes(x = TotalSteps, y = SedentaryMinutes)) +
   labs(title = paste("Correlation_steps_sedentary_time:", round(correlation_steps_sedentary_time, 2)), x = "Total Steps", y = "Sedentary Minutes")
 ```
 
+```
+## `geom_smooth()` using formula = 'y ~ x'
+```
+
+![](data_analysis_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
+
 There is weakly negative relation between step and sedentary minutes.
 
 #### 3. What is the relation between *step* and *sleep time*? -> **Do people with more steps sleep longer?**
 
-```{r}
+
+```r
 # inner join the dailyActivity and dailySleep by Id
 step_sleep <- merge(dailyActivity, dailySleep, by.x = c("Id", "ActivityDate"), by.y = c("Id", "SleepDay"))
 
@@ -231,20 +356,27 @@ ggplot(step_sleep, aes(x = TotalSteps, y = TotalMinutesAsleep)) +
   geom_point() +
   geom_smooth(method = "loess", se = TRUE, color = "blue") +
   labs(title = paste("Correlation_steps_sleep_time:", round(correlation_steps_sleep_time , 2)), x = "Total Steps", y = "Sleep Time(minutes)")
-  
 ```
+
+```
+## `geom_smooth()` using formula = 'y ~ x'
+```
+
+![](data_analysis_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
 
 There is no obvious relation between steps and sleep time.
 
 #### 4. What is the relation between *SedentaryMinutes* and *sleep time*? -> **Do people sit longer sleep longer?**
 
-```{r}
+
+```r
 # We found there were two data points that only have 0 and 2 minutes of sedentary time. We removed these two outliers.
 step_sleep <- step_sleep %>% filter(SedentaryMinutes > 2) %>%  arrange(TotalMinutesAsleep)
 ```
 
 
-```{r}
+
+```r
 correlation_sedentary_sleep_time <- cor(step_sleep$SedentaryMinutes, step_sleep$TotalMinutesAsleep)
 
 ggplot(step_sleep, aes(x = SedentaryMinutes, y = TotalMinutesAsleep)) +
@@ -254,12 +386,19 @@ ggplot(step_sleep, aes(x = SedentaryMinutes, y = TotalMinutesAsleep)) +
   geom_rect(xmin = 920, xmax = 1280, ymin = 0, ymax = 200, fill = NA, color = "red")
 ```
 
+```
+## `geom_smooth()` using formula = 'y ~ x'
+```
+
+![](data_analysis_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
+
 There is a negative relation between sedentary time and sleep time. **But we found that there are some people who sleep less than 3.5 hours but sit for over 16 hours (red rectangle area in the figure). We guessed whether some sedentary time detected by the smart devices actually belonged to sleep time.**
 
 
 #### 5. Which intensity of activity is the major one in the aspect of time? -> **Which intensity of activity does people prefer?**
 
-```{r}
+
+```r
 # Convert data from wide format to long format
 intensity_time <- dailyActivity %>% 
   select(LightlyActiveMinutes, FairlyActiveMinutes, VeryActiveMinutes)
@@ -269,7 +408,14 @@ mean_intensity_time <- intensity_time %>% summarise(mean_LightlyActiveMinutes = 
                              mean_VeryActiveMinutes = mean(VeryActiveMinutes))
 
 print(mean_intensity_time)
+```
 
+```
+##   mean_LightlyActiveMinutes mean_FairlyActiveMinutes mean_VeryActiveMinutes
+## 1                  192.8128                 13.56489               21.16489
+```
+
+```r
 intensity_time <- intensity_time %>%
   pivot_longer(
     cols = c(LightlyActiveMinutes, FairlyActiveMinutes, VeryActiveMinutes),
@@ -286,15 +432,17 @@ intensity_time %>%
     geom_histogram(mapping = aes(color=type),  fill="white", binwidth=30, alpha=0.4, position = 'identity') +
     labs(title="Distribution of Activity Intensity (minutes)") + 
     facet_wrap(~type)
-
 ```
+
+![](data_analysis_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
 
 **Most people prefer doing light activity**. The distribution of LightlyActive looks like subjects to normal distribution.
 
 
 #### 6. What is the difference between *weekday* and *weekend* for *step*? -> **Do people have prefer walking during weekends or weekdays?**
 
-```{r}
+
+```r
 # add a new column to identify if the date belongs to weekdays
 dailyActivity_weekday <- dailyActivity %>% 
   select(ActivityDate, TotalSteps) %>% 
@@ -305,7 +453,17 @@ dailyActivity_weekday_median <- dailyActivity_weekday %>%
   summarise(median = median(TotalSteps))
 
 print(dailyActivity_weekday_median)
+```
 
+```
+## # A tibble: 2 × 2
+##   Weekday median
+##   <chr>    <int>
+## 1 Weekday   7802
+## 2 Weekend   6708
+```
+
+```r
 ggplot(dailyActivity_weekday, aes(x=TotalSteps)) + 
     geom_histogram(mapping = aes(color=Weekday, y=..density..),  fill="white", binwidth=1000, alpha=0.6, position = 'identity') +
     geom_density(fill="#FF6666", alpha=.2) +
@@ -313,6 +471,8 @@ ggplot(dailyActivity_weekday, aes(x=TotalSteps)) +
     geom_vline(data = dailyActivity_weekday_median, mapping = aes(xintercept = median), color="blue",  linetype="dashed") +
     facet_wrap(~Weekday)
 ```
+
+![](data_analysis_files/figure-html/unnamed-chunk-19-1.png)<!-- -->
 **People's step counts are more concentrated and have larger medians on weekdays.** On weekends, the distribution of steps is more spread out, and some people will walk more than usual (e.g., more than 25k steps).
 
 
@@ -320,7 +480,8 @@ ggplot(dailyActivity_weekday, aes(x=TotalSteps)) +
 
 #### 1. What is the hourly step distribution? -> **When do people usually walk?**
 
-```{r}
+
+```r
 hourlyMeanData <- hourlyData %>% 
   group_by(Time) %>% 
   summarise(mean_hourly_step = mean(StepTotal), 
@@ -340,25 +501,44 @@ ggplot(hourlyMeanDataLong, aes(x = Time, y = Value, group = 1)) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
+
+![](data_analysis_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
 The three line charts have similar trends, demonstrating that people prefer doing exercise at noon (12:00-14:00) or evening (17:00-19:00). 
 
 #### 2. What is the relation between *step* and *calories* of every hour in an average day? 
 
-```{r}
+
+```r
 correlation_steps_intensity <- cor(hourlyData$StepTotal, hourlyData$TotalIntensity)
 ggplot(hourlyData, aes(x = StepTotal, y = TotalIntensity)) +
   geom_jitter() +
   geom_smooth(method = "loess", se = TRUE, color = "blue") +
   labs(title = paste("Correlation_steps_intensity:", round(correlation_steps_intensity, 2)), x = "Total Steps", y = "Total Intensity") +
   geom_rect(xmin = 0, xmax = 2500, ymin = 100, ymax = 185, fill = NA, color = "red")
+```
 
+```
+## `geom_smooth()` using formula = 'y ~ x'
+```
+
+![](data_analysis_files/figure-html/unnamed-chunk-21-1.png)<!-- -->
+
+```r
 correlation_steps_calories <- cor(hourlyData$StepTotal, hourlyData$Calories)
 ggplot(hourlyData, aes(x = StepTotal, y = Calories)) +
   geom_jitter() +
   geom_smooth(method = "loess", se = TRUE, color = "blue") +
   labs(title = paste("Correlation_steps_calories:", round(correlation_steps_calories, 2)), x = "Total Steps", y = "Calories")+
   geom_rect(xmin = 0, xmax = 2500, ymin = 500, ymax = 750, fill = NA, color = "red")
+```
 
+```
+## `geom_smooth()` using formula = 'y ~ x'
+```
+
+![](data_analysis_files/figure-html/unnamed-chunk-21-2.png)<!-- -->
+
+```r
 correlation_intensity_calories <- cor(hourlyData$TotalIntensity, hourlyData$Calories)
 ggplot(hourlyData, aes(x = TotalIntensity, y = Calories)) +
   geom_jitter() +
@@ -366,12 +546,19 @@ ggplot(hourlyData, aes(x = TotalIntensity, y = Calories)) +
   labs(title = paste("Correlation_intensity_calories:", round(correlation_intensity_calories, 2)), x = "Total Intensity", y = "Calories")
 ```
 
+```
+## `geom_smooth()` using formula = 'y ~ x'
+```
+
+![](data_analysis_files/figure-html/unnamed-chunk-21-3.png)<!-- -->
+
 We found that **hourly steps, hourly intensity, and hourly calories all have strongly positive relation** with each other. But we also found an interesting phenomenon: **the calories and intensity could be very high even with a few steps** (The red rectangle area in the figures). This may imply that steps or walking only count to part of the calories consumption and intensity. People can do some exercises with few steps but have high calories consumption and intensity.
 
 
 #### 3. Do people have different step count patterns on *weekdays* and *weekends*?
 
-```{r}
+
+```r
 hourlyData_weekday <- hourlyData %>% 
   mutate(Weekday = ifelse(weekdays(Date) %in% c("Saturday", "Sunday"), "Weekend", "Weekday"))
 
@@ -398,8 +585,9 @@ ggplot(hourlyMeanData_combined, aes(x = Time, y = mean_hourly_step, group = grou
   ggtitle("Mean Hourly Steps") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
-
 ```
+
+![](data_analysis_files/figure-html/unnamed-chunk-22-1.png)<!-- -->
 
 We found that **weekday and weekend have different peaks**. In weekdays, **people prefer doing exercise during 17:00-19:00, while on weekends, people prefer walking at noon (13:00-14:00).** Meanwhile, people *wake up later on weekends*, which is reflected in the line shift in the morning.
 
@@ -407,7 +595,8 @@ We found that **weekday and weekend have different peaks**. In weekdays, **peopl
 
 #### Verify our guess: *some sedentary time detected by the smart devices actually belonged to sleep time.*
 
-```{r}
+
+```r
 draw_sit <- function(specificId, specificDate) {
   personSit <- minuteIntensity %>%
     mutate(Date = as.Date(ActivityMinute, format = "%m/%d/%Y"),
@@ -424,7 +613,8 @@ draw_sit <- function(specificId, specificDate) {
 }
 ```
 
-```{r}
+
+```r
 draw_sleep <- function(specificId, specificDate) {
   personSleep <- minuteSleep %>%
     mutate(Date = as.Date(date, format = "%m/%d/%Y"),
@@ -443,35 +633,88 @@ draw_sleep <- function(specificId, specificDate) {
 }
 ```
 
-```{r}
+
+```r
 step_sleep %>%
   select(Id, ActivityDate, SedentaryMinutes) %>%
   filter(SedentaryMinutes < 250) %>%
   arrange(Id)
 ```
 
-```{r}
+```
+##           Id ActivityDate SedentaryMinutes
+## 1 1844505072   2016-04-30              218
+## 2 4702921684   2016-05-12              241
+## 3 5553957443   2016-05-12              222
+## 4 6117666160   2016-05-09              125
+## 5 6962181067   2016-05-12              127
+```
+
+
+```r
 specificId = 6962181067	
 specificDate = "5/12/2016"
 
 draw_sleep(specificId, specificDate)
+```
+
+![](data_analysis_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
+
+```r
 draw_sit(specificId, specificDate)
 ```
 
-```{r}
+![](data_analysis_files/figure-html/unnamed-chunk-26-2.png)<!-- -->
+
+
+```r
 step_sleep %>%
   select(Id, ActivityDate, TotalMinutesAsleep) %>%
   filter(TotalMinutesAsleep < 200) %>%
   arrange(Id)
 ```
 
-```{r}
+```
+##            Id ActivityDate TotalMinutesAsleep
+## 1  1644430081   2016-04-29                119
+## 2  1644430081   2016-04-30                124
+## 3  1644430081   2016-05-08                137
+## 4  1927972279   2016-04-28                166
+## 5  2320127002   2016-04-23                 61
+## 6  3977333714   2016-04-20                152
+## 7  4020332650   2016-04-16                 77
+## 8  4319703577   2016-04-21                 59
+## 9  4388161847   2016-05-09                 62
+## 10 4388161847   2016-04-22                 82
+## 11 4388161847   2016-04-18                 99
+## 12 4445114986   2016-04-17                 98
+## 13 4445114986   2016-04-29                106
+## 14 4558609924   2016-04-26                103
+## 15 4558609924   2016-05-01                115
+## 16 4558609924   2016-05-08                123
+## 17 4558609924   2016-04-21                126
+## 18 4558609924   2016-04-29                171
+## 19 5577150313   2016-05-05                 74
+## 20 7007744171   2016-05-01                 58
+## 21 7007744171   2016-04-16                 79
+## 22 8053475328   2016-05-07                 74
+```
+
+
+```r
 specificId = 7007744171
 specificDate = "4/16/2016"
 
 draw_sleep(specificId, specificDate)
+```
+
+![](data_analysis_files/figure-html/unnamed-chunk-28-1.png)<!-- -->
+
+```r
 draw_sit(specificId, specificDate)
 ```
+
+![](data_analysis_files/figure-html/unnamed-chunk-28-2.png)<!-- -->
 
 We have found that our previous hypothesis was not entirely accurate. The direct reason for the occurrence of short sleep duration and prolonged sedentary time is the incomplete sleep data in the dataset. In some days, the sleep data only includes partial sleep duration (such as only naps or partial nighttime sleep). Additionally, for some data points with long sleep duration but short sedentary time, we have also discovered that this is due to incomplete sitting time data being uploaded (such as data only covering half a day, rather than the normal 24-hour full day data).
 
