@@ -14,9 +14,7 @@ Our main objectives are as follows:
 2. Apply these trends to Bellabeat customers.
 3. Utilize these trends to influence Bellabeat's marketing strategy.
 
-## Case Study Roadmap - Ask
-
-### Key Tasks
+## Key Tasks
 
 1. Identify the business task: Our primary task is to analyze smart device usage data and discover insights that can help improve Bellabeat's marketing strategy.
 2. Consider key stakeholders: Keep in mind the various stakeholders in Bellabeat, such as the executive team, marketing team, and customers, whose interests and requirements need to be considered throughout the analysis.
@@ -25,6 +23,6 @@ Our main objectives are as follows:
 
 We used a public dataset from Kaggle ([FitBit Fitness Tracker Data](https://www.kaggle.com/datasets/arashnic/fitbit)) containing smart device usage data, and our task is to extract meaningful information from it to answer the guiding questions.
 
-### Deliverable
+## Deliverable
 
 A clear statement of the business task that outlines the objectives and questions that will guide our analysis. Here is our [final project document](./Code/data_analysis.md)
