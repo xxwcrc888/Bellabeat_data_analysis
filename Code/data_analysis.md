@@ -1,5 +1,5 @@
 # Bellabeat Activity Data Analysis
-### author: "Xinxin Wu & Chaoran Chen"
+### Xinxin Wu & Chaoran Chen
 
 ## Overview
 
