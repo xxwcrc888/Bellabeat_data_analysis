@@ -1,10 +1,5 @@
----
-title: "Bellabeat Activity Data Analysis"
-author: "Xinxin Wu & Chaoran Chen"
-output: 
-  html_document:
-    keep_md: true
----
+# Bellabeat Activity Data Analysis
+### author: "Xinxin Wu & Chaoran Chen"
 
 ## Overview
 
